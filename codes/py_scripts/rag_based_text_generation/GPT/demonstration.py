@@ -20,8 +20,11 @@ SENTENCE_EMBEDDING_MODEL_FOR_CONTEXT_RETRIEVAL = "pritamdeka/S-PubMedBert-MS-MAR
 # GPT config params
 TEMPERATURE = 0
 
-SYSTEM_PROMPT = """
+RAG_SYSTEM_PROMPT = """
 You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer by considering the context.
+"""
+PROMPT_SYSTEM_PROMPT = """
+You are an expert biomedical researcher. Answer the Question at the end
 """
 
 vectorstore = load_chroma(VECTOR_DB_PATH, SENTENCE_EMBEDDING_MODEL_FOR_NODE_RETRIEVAL)
@@ -41,7 +44,7 @@ def main():
         
 def prompt_demo(question):
     print("Calling GPT ...")
-    output = get_GPT_response(question, SYSTEM_PROMPT, CHAT_MODEL_ID, CHAT_DEPLOYMENT_ID, temperature=TEMPERATURE)
+    output = get_GPT_response(question, PROMPT_SYSTEM_PROMPT, CHAT_MODEL_ID, CHAT_DEPLOYMENT_ID, temperature=TEMPERATURE)
     print(output)
     print("")
 
@@ -99,7 +102,7 @@ def rag_demo(question):
 
     input("Press enter for Step 6 - LLM response")
     print("Calling GPT ...")
-    output = get_GPT_response(enriched_prompt, SYSTEM_PROMPT, CHAT_MODEL_ID, CHAT_DEPLOYMENT_ID, temperature=TEMPERATURE)
+    output = get_GPT_response(enriched_prompt, RAG_SYSTEM_PROMPT, CHAT_MODEL_ID, CHAT_DEPLOYMENT_ID, temperature=TEMPERATURE)
     print(output)
     print(" ")
 
