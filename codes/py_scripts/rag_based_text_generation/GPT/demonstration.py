@@ -33,6 +33,7 @@ print(" ")
 input("Press enter for Step 1 - Disease entity extraction using GPT-3.5-Turbo")
 print("Processing ...")
 entities = disease_entity_extractor(question)
+max_number_of_high_similarity_context_per_node = int(CONTEXT_VOLUME/len(entities))
 print("Extracted entity from the prompt = '{}'".format(", ".join(entities)))
 print(" ")
 
