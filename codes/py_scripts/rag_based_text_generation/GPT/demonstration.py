@@ -51,6 +51,7 @@ for node_name in node_hits:
     node_context.append(node_context_df[node_context_df.node_name == node_name].node_context.values[0])
 print("Extracted Context is : ")
 print(". ".join(node_context))
+print(" ")
 
 input("Press enter for Step 4 - Context pruning")
 question_embedding = embedding_function_for_context_retrieval.embed_query(question)
@@ -58,7 +59,7 @@ node_context_extracted = ""
 for node_name in node_hits:
     node_context = node_context_df[node_context_df.node_name == node_name].node_context.values[0]
     node_context_list = node_context.split(". ")        
-    node_context_embeddings = embedding_function.embed_documents(node_context_list)
+    node_context_embeddings = embedding_function_for_context_retrieval.embed_documents(node_context_list)
     similarities = [cosine_similarity(np.array(question_embedding).reshape(1, -1), np.array(node_context_embedding).reshape(1, -1)) for node_context_embedding in node_context_embeddings]
     similarities = sorted([(e, i) for i, e in enumerate(similarities)], reverse=True)
     percentile_threshold = np.percentile([s[0] for s in similarities], context_sim_threshold)
