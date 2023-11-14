@@ -30,14 +30,13 @@ node_context_df = pd.read_csv(NODE_CONTEXT_PATH)
 question = input("Enter your question : ") 
 print(" ")
 
-input("Press enter for starting the KG-RAG process")
-print("Step 1: Disease entity extraction using GPT-3.5-Turbo")
+input("Press enter for Step 1 - Disease entity extraction using GPT-3.5-Turbo")
+print("Processing ...")
 entities = disease_entity_extractor(question)
 print("Extracted entity from the prompt = '{}'".format(", ".join(entities)))
 print(" ")
 
-input("Press enter for proceeding to Step 2")
-print("Step 2: Match extracted Disease entity to SPOKE nodes")
+input("Press enter for Step 2 - Match extracted Disease entity to SPOKE nodes")
 print("Finding vector similarity ...")
 node_hits = []
 for entity in entities:
@@ -46,8 +45,8 @@ for entity in entities:
 print("Matched entities from SPOKE = '{}'".format(", ".join(node_hits)))
 print(" ")
 
-input("Press enter for proceeding to Step 3")
-print("Step 3: Context extraction from SPOKE")
+input("Press enter for Step 3 - Context extraction from SPOKE")
+print("Extracting context ...")
 node_context = []
 for node_name in node_hits:
     node_context.append(node_context_df[node_context_df.node_name == node_name].node_context.values[0])
