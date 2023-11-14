@@ -28,6 +28,7 @@ node_context_df = pd.read_csv(NODE_CONTEXT_PATH)
 
 
 question = input("Enter your question : ") 
+print(" ")
 
 input("Press enter for starting the KG-RAG process")
 print("Step 1: Disease entity extraction using GPT-3.5-Turbo")
