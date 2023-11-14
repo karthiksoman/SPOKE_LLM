@@ -62,8 +62,8 @@ for node_name in node_hits:
     node_context_embeddings = embedding_function_for_context_retrieval.embed_documents(node_context_list)
     similarities = [cosine_similarity(np.array(question_embedding).reshape(1, -1), np.array(node_context_embedding).reshape(1, -1)) for node_context_embedding in node_context_embeddings]
     similarities = sorted([(e, i) for i, e in enumerate(similarities)], reverse=True)
-    percentile_threshold = np.percentile([s[0] for s in similarities], context_sim_threshold)
-    high_similarity_indices = [s[1] for s in similarities if s[0] > percentile_threshold and s[0] > context_sim_min_threshold]
+    percentile_threshold = np.percentile([s[0] for s in similarities], QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD)
+    high_similarity_indices = [s[1] for s in similarities if s[0] > percentile_threshold and s[0] > QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY]
     if len(high_similarity_indices) > max_number_of_high_similarity_context_per_node:
         high_similarity_indices = high_similarity_indices[:max_number_of_high_similarity_context_per_node]
     high_similarity_context = [node_context_list[index] for index in high_similarity_indices]
