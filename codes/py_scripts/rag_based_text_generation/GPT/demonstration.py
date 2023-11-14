@@ -28,16 +28,15 @@ node_context_df = pd.read_csv(NODE_CONTEXT_PATH)
 
 
 question = input("Enter your question : ") 
-print("Press enter for starting the KG-RAG process")
 
+input("Press enter for starting the KG-RAG process")
 print(" ")
 print("Step 1: Disease entity extraction using GPT-3.5-Turbo")
 entities = disease_entity_extractor(question)
 print("Extracted entity from the prompt = '{}'".format(", ".join(entities)))
 print(" ")
 
-print("Press enter for proceeding to Step 2")
-
+input("Press enter for proceeding to Step 2")
 print(" ")
 print("Step 2: Match extracted Disease entity to SPOKE nodes")
 print("Finding vector similarity ...")
@@ -46,9 +45,9 @@ for entity in entities:
     node_search_result = vectorstore.similarity_search_with_score(entity, k=1)
     node_hits.append(node_search_result[0][0].page_content)
 print("Matched entities from SPOKE = '{}'".format(", ".join(node_hits)))
+print(" ")
 
-print("Press enter for proceeding to Step 3")
-
+input("Press enter for proceeding to Step 3")
 print(" ")
 print("Step 3: Context extraction from SPOKE")
 node_context = []
