@@ -16,7 +16,7 @@ SENTENCE_EMBEDDING_MODEL_FOR_CONTEXT_RETRIEVAL = "pritamdeka/S-PubMedBert-MS-MAR
 
 
 # GPT config params
-temperature = 0
+TEMPERATURE = 0
 
 SYSTEM_PROMPT = """
 You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer by considering the context.
@@ -73,6 +73,19 @@ for node_name in node_hits:
 print("Pruned Context is : ")
 print(node_context_extracted)
 print(" ")
+
+input("Press enter for Step 5 - LLM prompting")
+enriched_prompt = "Context: "+ node_context_extracted + "\n" + "Question: " + question
+print("Here is the enriched input to the LLM :")
+print(enriched_prompt)
+print(" ")
+
+input("Press enter for Step 6 - LLM response")
+print("Calling GPT ...")
+output = get_GPT_response(enriched_prompt, SYSTEM_PROMPT, CHAT_MODEL_ID, CHAT_DEPLOYMENT_ID, temperature=TEMPERATURE)
+print(output)
+print(" ")
+
 
 
 
