@@ -6,7 +6,7 @@ from utility import *
 response_type = sys.argv[1]
 
 CONTEXT_VOLUME = 150
-QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD = 75
+QUESTION_VS_CONTEXT_SIMILARITY_PERCENTILE_THRESHOLD = 99
 QUESTION_VS_CONTEXT_MINIMUM_SIMILARITY = 0.5
 
 CHAT_MODEL_ID = "gpt-35-turbo"
@@ -36,7 +36,7 @@ question = input("Enter your question : ")
 print(" ")
 
 def main():
-    if response_type == "rag":
+    if response_type == "kg-rag":
         rag_demo(question)
     else:
         prompt_demo(question)
