@@ -33,9 +33,9 @@ if PROMPT_TYPE == "mcq":
     """
 elif PROMPT_TYPE == "text":
     system_prompt = """
-    You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer with the Provenance information by considering the context. Give the provenance as reference at the end of the generated text and cite the reference number as a superscript in the generated text.
+    You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer with the Provenance information by considering the context. Cite the Provenance at the end of the generated text with corresponding number and cite that number using a square bracket within the generated text. 
     Example:
-        Genes associated with DiseaseX is GeneY<sup>1</sup>.
+        Genes associated with DiseaseX is GeneY [1].
         Provenance: 
         1. <give Citation>
     """
