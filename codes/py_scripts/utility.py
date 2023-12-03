@@ -11,6 +11,8 @@ from langchain import HuggingFacePipeline
 from langchain.vectorstores import Chroma
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, TextStreamer, GPTQConfig
+import requests
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 # from auto_gptq import exllama_set_max_input_length
 
 
@@ -31,6 +33,77 @@ openai.api_version = api_version
 torch.cuda.empty_cache()
 B_INST, E_INST = "[INST]", "[/INST]"
 B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
+
+BASE_URI = "https://spoke.rbvi.ucsf.edu"
+
+def get_api_resp(base_uri, end_point, params=None):
+    uri = base_uri + end_point
+    if params:
+        return requests.get(uri, params=params)
+    else:
+        return requests.get(uri)
+    
+@retry(wait=wait_random_exponential(min=10, max=30), stop=stop_after_attempt(5))
+def get_context_using_api(node_value):
+    type_end_point = "/api/v1/types"
+    result = get_api_resp(BASE_URI, type_end_point)
+    data_spoke_types = result.json()
+    node_types = list(data_spoke_types["nodes"].keys())
+    edge_types = list(data_spoke_types["edges"].keys())
+    node_types_to_remove = ["DatabaseTimestamp", "Version"]
+    filtered_node_types = [node_type for node_type in node_types if node_type not in node_types_to_remove]
+    api_params = {
+        'node_filters' : filtered_node_types,
+        'edge_filters': edge_types,
+        'cutoff_Compound_max_phase': 3,
+        'cutoff_Protein_source': ['SwissProt'],
+        'cutoff_DaG_diseases_sources': ['knowledge', 'experiments'],
+        'cutoff_DaG_textmining': 3,
+        'cutoff_CtD_phase': 3,
+        'cutoff_PiP_confidence': 0.7,
+        'cutoff_ACTeG_level': ['Low', 'Medium', 'High']
+    }
+    node_type = "Disease"
+    attribute = "name"
+    nbr_end_point = "/api/v1/neighborhood/{}/{}/{}".format(node_type, attribute, node_value)
+    result = get_api_resp(BASE_URI, nbr_end_point, params=api_params)
+    node_context = result.json()
+    nbr_nodes = []
+    nbr_edges = []
+    for item in node_context:
+        if "_" not in item["data"]["neo4j_type"]:
+            try:
+                nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["name"]))
+            except:
+                nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["identifier"]))
+        elif "_" in item["data"]["neo4j_type"]:
+            try:
+                provenance = ", ".join(item["data"]["properties"]["sources"])
+            except:
+                try:
+                    provenance = item["data"]["properties"]["source"]
+                    if isinstance(provenance, list):
+                        provenance = ", ".join(provenance)                    
+                except:
+                    provenance = None                                    
+            nbr_edges.append((item["data"]["source"], item["data"]["neo4j_type"], item["data"]["target"], provenance))
+    nbr_nodes_df = pd.DataFrame(nbr_nodes, columns=["node_type", "node_id", "node_name"])
+    nbr_edges_df = pd.DataFrame(nbr_edges, columns=["source", "edge_type", "target", "provenance"])
+    merge_1 = pd.merge(nbr_edges_df, nbr_nodes_df, left_on="source", right_on="node_id").drop("node_id", axis=1)
+    merge_1.loc[:,"node_name"] = merge_1.node_type + " " + merge_1.node_name
+    merge_1.drop(["source", "node_type"], axis=1, inplace=True)
+    merge_1 = merge_1.rename(columns={"node_name":"source"})
+    merge_2 = pd.merge(merge_1, nbr_nodes_df, left_on="target", right_on="node_id").drop("node_id", axis=1)
+    merge_2.loc[:,"node_name"] = merge_2.node_type + " " + merge_2.node_name
+    merge_2.drop(["target", "node_type"], axis=1, inplace=True)
+    merge_2 = merge_2.rename(columns={"node_name":"target"})
+    merge_2 = merge_2[["source", "edge_type", "target", "provenance"]]
+    merge_2.loc[:, "predicate"] = merge_2.edge_type.apply(lambda x:x.split("_")[0])
+    merge_2.loc[:, "context"] =  merge_2.source + " " + merge_2.predicate.str.lower() + " " + merge_2.target + " and Provenance of this association is from " + merge_2.provenance + "."
+    context = merge_2['context'].str.cat(sep=' ')
+    return context
+
+
 
 
 def get_prompt(instruction, new_system_prompt):
@@ -133,7 +206,7 @@ def load_chroma(vector_db_path, sentence_embedding_model):
     embedding_function = load_sentence_transformer(sentence_embedding_model)
     return Chroma(persist_directory=vector_db_path, embedding_function=embedding_function)
 
-def retrieve_context(question, vectorstore, embedding_function, node_context_df, context_volume, context_sim_threshold, context_sim_min_threshold):
+def retrieve_context(question, vectorstore, embedding_function, node_context_df, context_volume, context_sim_threshold, context_sim_min_threshold, api=True):
     entities = disease_entity_extractor(question)
     node_hits = []
     if entities:
@@ -144,7 +217,10 @@ def retrieve_context(question, vectorstore, embedding_function, node_context_df,
         question_embedding = embedding_function.embed_query(question)
         node_context_extracted = ""
         for node_name in node_hits:
-            node_context = node_context_df[node_context_df.node_name == node_name].node_context.values[0]
+            if not api:
+                node_context = node_context_df[node_context_df.node_name == node_name].node_context.values[0]
+            else:
+                node_context = get_context_using_api(node_name)
             node_context_list = node_context.split(". ")        
             node_context_embeddings = embedding_function.embed_documents(node_context_list)
             similarities = [cosine_similarity(np.array(question_embedding).reshape(1, -1), np.array(node_context_embedding).reshape(1, -1)) for node_context_embedding in node_context_embeddings]
