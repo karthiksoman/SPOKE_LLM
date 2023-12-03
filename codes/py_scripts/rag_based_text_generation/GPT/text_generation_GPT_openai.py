@@ -33,7 +33,7 @@ if PROMPT_TYPE == "mcq":
     """
 elif PROMPT_TYPE == "text":
     system_prompt = """
-    You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer by considering the context.
+    You are an expert biomedical researcher. For answering the Question at the end, you need to first read the Context provided. Then give your final answer by considering the context, along with the Provenance information mentioned in the context.
     """
 
     
