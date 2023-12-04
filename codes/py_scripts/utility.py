@@ -88,7 +88,19 @@ def get_context_using_api(node_value):
                     if isinstance(provenance, list):
                         provenance = ", ".join(provenance)                    
                 except:
-                    provenance = "SPOKE-KG"                                    
+                    try:
+                        preprint_list = ast.literal_eval(item["data"]["properties"]["source"]["preprint_list"])
+                        if len(preprint_list) > 0:                            
+                            provenance = ", ".join(preprint_list)
+                        else:
+                            pmid_list = ast.literal_eval(item["data"]["properties"]["source"]["pmid_list"])
+                            pmid_list = map(lambda x:"pubmedId:"+x, pmid_list)
+                            if len(pmid_list) > 0:
+                                provenance = ", ".join(pmid_list)
+                            else:
+                                provenance = "Based on data from Institute For Systems Biology (ISB)"
+                    except:                                
+                        provenance = "SPOKE-KG"                                    
             nbr_edges.append((item["data"]["source"], item["data"]["neo4j_type"], item["data"]["target"], provenance))
     nbr_nodes_df = pd.DataFrame(nbr_nodes, columns=["node_type", "node_id", "node_name"])
     nbr_edges_df = pd.DataFrame(nbr_edges, columns=["source", "edge_type", "target", "provenance"])
