@@ -73,7 +73,10 @@ def get_context_using_api(node_value):
     for item in node_context:
         if "_" not in item["data"]["neo4j_type"]:
             try:
-                nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["name"]))
+                if item["data"]["neo4j_type"] == "Protein":
+                    nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["description"]))
+                else:
+                    nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["name"]))
             except:
                 nbr_nodes.append((item["data"]["neo4j_type"], item["data"]["id"], item["data"]["properties"]["identifier"]))
         elif "_" in item["data"]["neo4j_type"]:
