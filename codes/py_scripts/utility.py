@@ -240,7 +240,10 @@ def retrieve_context(question, vectorstore, embedding_function, node_context_df,
         node_context_extracted = ""
         for node in node_hits:
             node_name = node[0].page_content
-            node_context = node_context_df[node_context_df.node_name == node_name].node_context.values[0]
+            if not api:
+                node_context = node_context_df[node_context_df.node_name == node_name].node_context.values[0]
+            else:
+                node_context = get_context_using_api(node_name)
             node_context_list = node_context.split(". ")        
             node_context_embeddings = embedding_function.embed_documents(node_context_list)
             similarities = [cosine_similarity(np.array(question_embedding).reshape(1, -1), np.array(node_context_embedding).reshape(1, -1)) for node_context_embedding in node_context_embeddings]
