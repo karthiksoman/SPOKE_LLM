@@ -88,7 +88,7 @@ def get_context_using_api(node_value):
                     if isinstance(provenance, list):
                         provenance = ", ".join(provenance)                    
                 except:
-                    provenance = None                                    
+                    provenance = "SPOKE-KG"                                    
             nbr_edges.append((item["data"]["source"], item["data"]["neo4j_type"], item["data"]["target"], provenance))
     nbr_nodes_df = pd.DataFrame(nbr_nodes, columns=["node_type", "node_id", "node_name"])
     nbr_edges_df = pd.DataFrame(nbr_edges, columns=["source", "edge_type", "target", "provenance"])
